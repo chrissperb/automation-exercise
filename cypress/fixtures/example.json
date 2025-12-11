@@ -1,0 +1,13 @@
+{
+  "ticket_id": 102938,
+  "user": "QA Automation Tester",
+  "email": "qa_tester@example.com",
+  "issue_type": "Bug Report",
+  "description": "Found an issue while testing the contact form upload functionality.",
+  "priority": "High",
+  "environment": {
+    "os": "Linux",
+    "browser": "Chrome Headless",
+    "version": "120.0"
+  }
+}
