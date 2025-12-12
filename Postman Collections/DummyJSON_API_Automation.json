@@ -1,0 +1,582 @@
+{
+	"info": {
+		"_postman_id": "a26d582b-1e7d-4791-a135-a034fc2a38aa",
+		"name": "DummyJSON Automation",
+		"description": "# 🚀 DummyJSON API Automation\n\nFramework de automação de testes de API REST desenvolvido para validar endpoints do [DummyJSON](https://dummyjson.com). O projeto utiliza **Postman** para estruturação dos cenários e **Newman** para execução em pipeline (CI/CD) com relatórios HTML avançados.\n\n<img src=\"https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&amp;logo=postman&amp;logoColor=white\" alt=\"Postman\">\n\n<img src=\"https://img.shields.io/badge/Newman-Validation-green?style=for-the-badge\" alt=\"Newman\">\n\n<img src=\"https://img.shields.io/badge/JavaScript-ES6-yellow?style=for-the-badge&amp;logo=javascript&amp;logoColor=white\" alt=\"JavaScript\">\n\n## 📋 Arquitetura e Funcionalidades\n\nO projeto foi desenhado para simular fluxos reais de um Backend, cobrindo autenticação, manipulação de dados e validação de contratos.\n\n### Destaques Técnicos:\n\n- **🔐 Autenticação Dinâmica (JWT):** O token gerado no login é capturado automaticamente e injetado em todos os requests subsequentes via Variáveis de Ambiente.\n    \n- **🔄 Fluxos CRUD Inteligentes:**\n    \n    - **Criação:** Captura o ID gerado pela API.\n        \n    - **Persistência Simulada:** Tratamento lógico para lidar com o Mock do DummyJSON (uso de IDs estáticos para Update/Delete garantirem sucesso).\n        \n    - **Validação Cruzada:** O endpoint `/auth/me` valida se o token gerado pertence realmente ao usuário logado.\n        \n- **📜 Contract Testing:** Validação de **JSON Schema** em todos os endpoints para garantir a integridade dos tipos de dados.\n    \n- **⚡ Performance:** Monitoramento global de SLA (tempo de resposta < 2000ms) em toda a coleção.\n    \n\n## 🧪 Cobertura de Testes\n\nA coleção está organizada em pastas lógicas:\n\n1. **Auth**\n    \n    - Login (POST)\n        \n    - Validação de Token/Sessão (GET /auth/me)\n        \n2. **Products (CRUD)**\n    \n    - Adicionar Produto (POST)\n        \n    - Atualizar Produto (PUT)\n        \n    - Remover Produto (DELETE)\n        \n3. **Users (CRUD)**\n    \n    - Adicionar Usuário (POST)\n        \n    - Atualizar Usuário (PUT)\n        \n    - Remover Usuário (DELETE)\n        \n\n## ⚙️ Pré-requisitos\n\n- [Node.js](https://nodejs.org/) (v14 ou superior)\n    \n- Newman (CLI do Postman)\n    \n- Newman Reporter HTML Extra\n    \n\n## 🚀 Instalação e Execução\n\n### 1\\. Instalar Dependências\n\nNo terminal, instale o Newman e o gerador de relatórios globalmente:\n\n``` bash\nnpm install -g newman newman-reporter-htmlextra\n ```\n\n### 2\\. Exportar Arquivos\n\nExporte sua Collection e seu Environment do Postman e salve na pasta do projeto:\n\n- `DummyJSON Automation.postman_collection.json`\n    \n- `DummyJSON - QA.postman_environment.json`\n    \n\n### 3\\. Executar os Testes\n\nRode o comando abaixo para executar a suíte completa e gerar o dashboard:\n\n``` bash\nnewman run \"DummyJSON Automation.postman_collection.json\" \\\n  -e \"DummyJSON - QA.postman_environment.json\" \\\n  -r htmlextra\n\n ```\n\n## 📊 Relatórios\n\nApós a execução, um relatório detalhado será gerado na pasta `/newman`.  \nAbra o arquivo `.html` no seu navegador para visualizar:\n\n- Dashboard com gráficos de Pass/Fail.\n    \n- Detalhamento de Request/Response Headers e Body.\n    \n- Logs de testes ignorados ou falhos.\n    \n\n---\n\n**Author:** Christian Sperb",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f2e0395e-94cc-46a5-9f22-5149e492f364",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"var loginSchema = {",
+									"    \"type\": \"object\",",
+									"    \"required\": [\"id\", \"username\", \"email\", \"accessToken\", \"gender\"],",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"integer\" },",
+									"        \"username\": { \"type\": \"string\" },",
+									"        \"email\": { \"type\": \"string\" },",
+									"        \"accessToken\": { \"type\": \"string\" },",
+									"        \"gender\": { \"type\": \"string\" }",
+									"    }",
+									"};",
+									"",
+									"pm.test(\"Contrato: Estrutura do Login válida\", function () {",
+									"    pm.response.to.have.jsonSchema(loginSchema);",
+									"});",
+									"",
+									"pm.test(\"Response should contain access token\", function () {",
+									"    pm.expect(jsonData).to.have.property(\"accessToken\");",
+									"    pm.expect(jsonData).to.have.property(\"id\");",
+									"});",
+									"",
+									"if (jsonData.accessToken) {",
+									"    pm.environment.set(\"token\", jsonData.accessToken);",
+									"    pm.environment.set(\"userId\", jsonData.id);",
+									"    console.log(\"Token salvo com sucesso: \" + jsonData.accessToken);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "b0b48c09-3e98-43c2-9332-40df9f3f44ea",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"emilys\",\n  \"password\": \"emilyspass\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/auth/login",
+						"description": "## Login\n\nAuthenticate a user and retrieve access and refresh tokens.\n\n### Endpoint\n- Method: POST\n- URL: `{{baseUrl}}/auth/login`\n\n### Authorization\n- None required for this endpoint.\n- On success, tokens are returned. The access token can be stored in the environment as `token` for subsequent requests.\n\n### Request\n- Headers:\n  - `Content-Type: application/json`\n- Body (raw JSON):\n```json\n{\n  \"username\": \"string\",\n  \"password\": \"string\"\n}\n```\n\nExample:\n```json\n{\n  \"username\": \"emilys\",\n  \"password\": \"emilyspass\"\n}\n```\n\n### Variables\n- `{{baseUrl}}`: Base URL for the DummyJSON API (set in the active environment).\n\n### Responses\n- 200 OK\n  - Returns user info and tokens. Example shape:\n```json\n{\n  \"accessToken\": \"<jwt>\",\n  \"refreshToken\": \"<jwt>\",\n  \"id\": 1,\n  \"username\": \"emilys\",\n  \"email\": \"emily.johnson@x.dummyjson.com\",\n  \"firstName\": \"Emily\",\n  \"lastName\": \"Johnson\",\n  \"gender\": \"female\",\n  \"image\": \"https://dummyjson.com/icon/emilys/128\"\n}\n```\n- 400/401\n  - Returned when credentials are invalid or missing.\n\n### Tests\nThis request contains tests that assert a 200 status code and check for presence of token and id fields. On success, it stores:\n- `token`: Access token returned by the API (environment variable)\n- `userId`: User id returned by the API (environment variable)\n\nNote: If the API returns `accessToken` instead of `token`, update the test to assert `accessToken` and set `token` from that value if needed.\n\n### Usage Notes\n- Use the returned `accessToken`/`token` as a Bearer token for authenticated endpoints.\n- Keep `refreshToken` safely to renew sessions when required."
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Token (Auth Me)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3022d062-c864-4587-9029-15969242dc3a",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"var idEsperado = pm.environment.get(\"userId\");",
+									"",
+									"pm.test(\"Token pertence ao usuário correto\", function () {",
+									"    pm.expect(jsonData.id.toString()).to.eql(idEsperado.toString());",
+									"    pm.expect(jsonData.username).to.eql(\"emilys\");",
+									"});",
+									"",
+									"pm.test(\"Resposta contém dados do perfil\", function () {",
+									"    pm.expect(jsonData).to.have.property(\"email\");",
+									"    pm.expect(jsonData).to.have.property(\"image\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "c6ca0d33-ff14-4fad-926c-dd56d960d639",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/auth/me",
+						"description": "# Verifies the bearer token by fetching the authenticated user profile.\n\n## Endpoint\n\n- Method: GET\n    \n- URL: {{baseUrl}}/auth/me\n    \n\n## Authentication\n\n- Requires Bearer Token in Authorization header: `Authorization: Bearer {{token}}`\n    \n- Uses {{token}} from the active environment.\n    \n\n## Expected Response\n\n- Status: 200 on success\n    \n- Body: JSON object with user profile fields including id, username, email, image, role, and other attributes.\n    \n\n## Tests (post-response)\n\n- Confirms the token belongs to the expected user by comparing response `id` to `{{userId}}` and checking `username` equals `emilys`.\n    \n- Validates presence of profile fields: `email` and `image`.\n    \n\n## Variables\n\n- {{baseUrl}}: Base URL for the DummyJSON API.\n    \n- {{token}}: Bearer token for the authenticated session.\n    \n- {{userId}}: Expected authenticated user id used in tests.\n    \n\n## Usage Notes\n\n- Ensure the active environment (e.g., DummyJSON - QA) has valid values for baseUrl, token, and userId before sending.\n    \n- This request has no body."
+					},
+					"response": []
+				}
+			],
+			"id": "76ad3669-310b-47bb-aea9-ef8ff7de8bf0"
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Add Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "847bf33b-4533-4a7e-8437-c68a369fdf2b",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"var productSchema = {",
+									"    \"type\": \"object\",",
+									"    \"required\": [\"id\", \"title\", \"price\", \"stock\", \"brand\"],",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"integer\" },",
+									"        \"title\": { \"type\": \"string\" },",
+									"        \"description\": { \"type\": \"string\" },",
+									"        \"price\": { \"type\": \"number\" }, // Garante que é número",
+									"        \"discountPercentage\": { \"type\": \"number\" },",
+									"        \"rating\": { \"type\": \"number\" },",
+									"        \"stock\": { \"type\": \"integer\" },",
+									"        \"brand\": { \"type\": \"string\" },",
+									"        \"category\": { \"type\": \"string\" }",
+									"    }",
+									"};",
+									"",
+									"pm.test(\"Contrato: Estrutura do Produto válida\", function () {",
+									"    pm.response.to.have.jsonSchema(productSchema);",
+									"});",
+									"",
+									"pm.test(\"Produto criado com sucesso\", function () {",
+									"    pm.expect(jsonData.title).to.eql(\"Celular de Teste QA\");",
+									"    pm.expect(jsonData).to.have.property(\"id\");",
+									"});",
+									"// Salvar o ID gerado para usar nos próximos passos",
+									"if (jsonData.id) {",
+									"    // Aqui validamos que a API gerou um ID novo (Ex: 195)",
+									"    console.log(\"ID Real Gerado (Mock): \" + jsonData.id);",
+									"    // Contudo aqui nós setamos para outro id, pois o site não persiste o produto criado",
+									"    pm.environment.set(\"productId\", \"1\"); ",
+									"    console.log(\"Variável productId definida para '1' para permitir o fluxo contínuo.\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "a6f5fcbe-1928-4a92-aaa1-829a81a24de3",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Celular de Teste QA\",\n  \"description\": \"Um smartphone criado via automação Postman\",\n  \"price\": 999,\n  \"rating\": 5.0,\n  \"stock\": 50,\n  \"brand\": \"QA Brand\",\n  \"category\": \"smartphones\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/products/add",
+						"description": "# Add Product\n\n## Summary\n\nCreates a new product in the DummyJSON sample API for QA automation exercises. This request uses environment variables for base URL and auth token.\n\n## Endpoint\n\nPOST {{baseUrl}}/products/add\n\n## Authentication\n\n- Bearer Token (recommended)\n    - Uses environment variable: {{token}}\n        \n\n## Headers\n\n- Content-Type: application/json\n    \n- Authorization: Bearer {{token}} (if required by your environment)\n    \n\n## Request Body\n\nContent-Type: application/json  \nSchema (representative)  \n{  \n\"type\": \"object\",  \n\"required\": \\[\"title\", \"price\", \"stock\", \"brand\", \"category\"\\],  \n\"properties\": {  \n\"title\": { \"type\": \"string\", \"example\": \"Celular de Teste QA\" },  \n\"description\": { \"type\": \"string\", \"example\": \"Um smartphone criado via automação Postman\" },  \n\"price\": { \"type\": \"number\", \"example\": 999 },  \n\"discountPercentage\": { \"type\": \"number\", \"example\": 0 },  \n\"rating\": { \"type\": \"number\", \"example\": 5 },  \n\"stock\": { \"type\": \"integer\", \"example\": 50 },  \n\"brand\": { \"type\": \"string\", \"example\": \"QA Brand\" },  \n\"category\": { \"type\": \"string\", \"example\": \"smartphones\" }  \n}  \n}\n\n## Example Body\n\n{  \n\"title\": \"Celular de Teste QA\",  \n\"description\": \"Um smartphone criado via automação Postman\",  \n\"price\": 999,  \n\"rating\": 5,  \n\"stock\": 50,  \n\"brand\": \"QA Brand\",  \n\"category\": \"smartphones\"  \n}\n\n## Success Responses\n\n- 201 Created (or 200 OK in DummyJSON mock behavior)  \n    Body (example)  \n    {  \n    \"id\": 195,  \n    \"title\": \"Celular de Teste QA\",  \n    \"description\": \"Um smartphone criado via automação Postman\",  \n    \"price\": 999,  \n    \"rating\": 5,  \n    \"stock\": 50,  \n    \"brand\": \"QA Brand\",  \n    \"category\": \"smartphones\"  \n    }\n    \n\n## Error Responses\n\n- 400 Bad Request: Invalid or missing fields.\n    \n- 401 Unauthorized: Missing/invalid token when auth is enforced.\n    \n\n## Notes\n\n- This workspace uses an automation-friendly flow. The post-response tests validate status (200/201) and contract via JSON schema and store a productId environment variable set to '1' to allow subsequent requests to execute even though the DummyJSON demo API does not persist created items.\n    \n- Adjust {{token}} in the 'DummyJSON - QA' environment if your API variant requires authentication.\n    \n\n## Related Requests\n\n- Login (for obtaining/refreshing token)\n    \n- Update Product\n    \n- Delete Product\n    \n- Search Product By id"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "eb98c0d3-8cd2-4804-9de7-10ae279c6243",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"var productSchema = {",
+									"    \"type\": \"object\",",
+									"    \"required\": [\"id\", \"title\", \"price\", \"stock\", \"brand\"],",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"integer\" },",
+									"        \"title\": { \"type\": \"string\" },",
+									"        \"description\": { \"type\": \"string\" },",
+									"        \"price\": { \"type\": \"number\" }, // Garante que é número",
+									"        \"discountPercentage\": { \"type\": \"number\" },",
+									"        \"rating\": { \"type\": \"number\" },",
+									"        \"stock\": { \"type\": \"integer\" },",
+									"        \"brand\": { \"type\": \"string\" },",
+									"        \"category\": { \"type\": \"string\" }",
+									"    }",
+									"};",
+									"",
+									"pm.test(\"Contrato: Estrutura do Produto válida\", function () {",
+									"    pm.response.to.have.jsonSchema(productSchema);",
+									"});",
+									"",
+									"pm.test(\"Título foi atualizado\", function () {",
+									"    pm.expect(jsonData.title).to.eql(\"Celular de Teste QA - ATUALIZADO\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "3f66ae4c-85d7-4763-bf5f-fee24e32d300",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Celular de Teste QA - ATUALIZADO\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/products/{{productId}}",
+						"description": "# Purpose\n\nUpdate an existing product's attributes in the DummyJSON QA API.\n\n## Endpoint and Method\n\n- Method: PUT\n    \n- URL: {{baseUrl}}/products/{{productId}}\n    \n\n## Path Variables\n\n- productId (from active environment): ID of the product to update.\n    \n\n## Authentication\n\n- Inherit/Use existing auth configuration for this request/collection.\n    \n- If using a bearer token, environment variable reference: {{token}}.\n    \n\n## Required/Recommended Headers\n\n- Content-Type: application/json\n    \n- Accept: application/json\n    \n\n## Request Body\n\n- Type: raw JSON\n    \n- \"title\": { \"type\": \"string\" }, \"price\": { \"type\": \"number\" }, \"description\": { \"type\": \"string\" }, \"discountPercentage\": { \"type\": \"number\" }, \"rating\": { \"type\": \"number\" }, \"stock\": { \"type\": \"integer\" }, \"brand\": { \"type\": \"string\" }, \"category\": { \"type\": \"string\" }\n    \n    },  \n    \"additionalProperties\": true  \n    }\n    \n- Example Body (matches current tab):  \n    {  \n    \"title\": \"Celular de Teste QA - ATUALIZADO\"  \n    }\n    \n\n## Success Response\n\n- Status: 200 OK\n    \n- Body (example):  \n    {  \n    \"id\": 1,  \n    \"title\": \"Celular de Teste QA - ATUALIZADO\",  \n    \"description\": \"...\",  \n    \"price\": 29000.99,  \n    \"discountPercentage\": 0,  \n    \"rating\": 0,  \n    \"stock\": 100,  \n    \"brand\": \"...\",  \n    \"category\": \"...\"  \n    }\n    \n\n## Error Responses (examples)\n\n- 400 Bad Request  \n    {  \n    \"error\": \"Invalid payload\",  \n    \"details\": \\[\n    \n    ```\n                { \"field\": \"title\", \"message\": \"must be a string\" }\n    \n     ```\n    \n    \\]  \n    }\n    \n- 401 Unauthorized  \n    {  \n    \"error\": \"Missing or invalid token\"  \n    }\n    \n- 404 Not Found  \n    {  \n    \"error\": \"Product not found\",  \n    \"productId\": \"{{productId}}\"  \n    }\n    \n\n## Notes\n\n- Variables used: {{baseUrl}}, {{productId}}, {{token}} (read-only in this doc). Do not modify variables here; manage them in the active environment \"DummyJSON - QA\".\n    \n- This request includes post-response tests that validate status 200, check the product schema, and assert that the title is updated to \"Celular de Teste QA - ATUALIZADO\".\n    \n- When running via Collection Runner/Monitor, ensure the environment provides valid values for baseUrl, productId, and token."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6aec0a6e-d4e5-4a84-9daf-bd2007fb331e",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"var deleteSchema = {",
+									"    \"type\": \"object\",",
+									"    \"required\": [\"id\", \"title\", \"isDeleted\", \"deletedOn\"],",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"integer\" },",
+									"        \"title\": { \"type\": \"string\" },",
+									"        \"isDeleted\": { \"type\": \"boolean\" }, // Tem que ser true/false",
+									"        \"deletedOn\": { \"type\": \"string\" }     // Formato de data vem como string",
+									"    }",
+									"};",
+									"",
+									"pm.test(\"Contrato: Estrutura de Deleção válida\", function () {",
+									"    pm.response.to.have.jsonSchema(deleteSchema);",
+									"});",
+									"",
+									"pm.test(\"Produto foi deletado\", function () {",
+									"    pm.expect(jsonData.isDeleted).to.be.true;",
+									"    pm.expect(jsonData).to.have.property(\"deletedOn\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "be551db1-0f4a-4ad6-84d7-35450bba1c48",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "{{baseUrl}}/products/{{productId}}",
+						"description": "# Summary  \nDeletes a product by its unique identifier. This operation marks the product as deleted and returns metadata about the deletion.\n\n## Endpoint and Method\n\n- Method: DELETE\n    \n- URL: {{baseUrl}}/products/{{productId}}\n    \n\n## Path and Required Variables\n\n- Path parameters:\n    - productId (required): The ID of the product to delete.\n        - Example: 123\n            \n- Environment/collection variables used:\n    - baseUrl: Base URL of the API.\n        - Example: [https://api.example.com](https://api.example.com)\n            \n    - token: Bearer token used for authentication.\n        - Example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n            \n\n## Authentication\n\n- Type: Bearer Token\n    \n- Header: Authorization: Bearer {{token}}\n    \n- The request must be sent with a valid token; otherwise, it will be rejected.\n    \n\n## Expected Success Response\n\n- Status: 200 OK\n    \n- Body: JSON object containing deletion details.\n    \n- Schema overview:\n    - id: integer\n        \n    - title: string\n        \n    - isDeleted: boolean (true when deletion succeeds)\n        \n    - deletedOn: string (ISO-8601 date/time as string)\n        \n\n## Possible Error Responses\n\n- 400 Bad Request: Invalid or missing productId.\n    \n- 401 Unauthorized: Missing or invalid Authorization header/bearer token.\n    \n- 403 Forbidden: Authenticated but not authorized to delete the product.\n    \n- 404 Not Found: Product with the given productId does not exist.\n    \n- 409 Conflict: Deletion conflict (e.g., product locked or already deleted depending on API behavior).\n    \n- 500 Internal Server Error: Unhandled server error.\n    \n\n## Example cURL\n\n``` bash\ncurl --location --request DELETE \"{{baseUrl}}/products/{{productId}}\" \\\n  --header \"Authorization: Bearer {{token}}\"\n\n ```\n\n## Notes\n\n- This request has no body.\n    \n- Existing tests validate status 200 and check the deletion contract and flags in the response."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Product By id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ccbe1b68-a134-49c1-a6af-fd85b4e44c14",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"var productSchema = {",
+									"    \"type\": \"object\",",
+									"    \"required\": [\"id\", \"title\", \"price\", \"stock\", \"brand\"],",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"integer\" },",
+									"        \"title\": { \"type\": \"string\" },",
+									"        \"description\": { \"type\": \"string\" },",
+									"        \"price\": { \"type\": \"number\" }, // Garante que é número",
+									"        \"discountPercentage\": { \"type\": \"number\" },",
+									"        \"rating\": { \"type\": \"number\" },",
+									"        \"stock\": { \"type\": \"integer\" },",
+									"        \"brand\": { \"type\": \"string\" },",
+									"        \"category\": { \"type\": \"string\" }",
+									"    }",
+									"};",
+									"",
+									"pm.test(\"Contrato: Estrutura do Produto válida\", function () {",
+									"    pm.response.to.have.jsonSchema(productSchema);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "b9c3cc6b-3fcf-47c0-a912-f0baf213d589",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/products/{{productId}}",
+						"description": "# Purpose: Retrieve a single product by its ID from DummyJSON.\n\n## Method: GET\n\n## Path: {{baseUrl}}/products/{{productId}}\n\n- Variables in path:\n    - baseUrl: Base API URL (from active environment)\n        \n    - productId: Numeric ID of the product to fetch\n        \n\n## Required Variables:\n\n- baseUrl (environment)\n    \n- productId (environment)\n    \n- token (environment, if your API requires Bearer auth; this request currently has no explicit auth configured and may inherit from parent)\n    \n\n## Authentication:\n\n- Inherit from parent (collection/folder) or none if not configured. If Bearer is needed, set token in environment and configure auth at the folder/collection level.\n    \n\n## Success Response (200) overview:\n\n- JSON object with these notable fields\n    - id (integer)\n        \n    - title (string)\n        \n    - description (string)\n        \n    - price (number)\n        \n    - discountPercentage (number)\n        \n    - rating (number)\n        \n    - stock (integer)\n        \n    - brand (string)\n        \n    - category (string)\n        \n\n## Tests:\n\n- Verifies HTTP 200 and validates response against a product schema.\n    \n\n## Example usage:\n\n- Set environment variables:\n    - baseUrl=[https://dummyjson.com](https://dummyjson.com)\n        \n    - productId=1\n        \n- Send request: GET {{baseUrl}}/products/{{productId}}"
+					},
+					"response": []
+				}
+			],
+			"id": "90fd29f0-1db1-4507-b500-b572e74f9dd7",
+			"auth": {
+				"type": "bearer",
+				"bearer": {
+					"token": "{{token}}"
+				}
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "d7e7ae6a-3cde-491c-9f5e-b34348271435",
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "93596b85-bbda-489a-8c69-4cd8c4bfec23",
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Add User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3a75f04d-e8c2-46dc-8f0e-cabb8e47fa5a",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"var userSchema = {",
+									"    \"type\": \"object\",",
+									"    \"required\": [\"id\", \"firstName\", \"lastName\", \"email\"],",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"integer\" },",
+									"        \"firstName\": { \"type\": \"string\" },",
+									"        \"lastName\": { \"type\": \"string\" },",
+									"        \"email\": { \"type\": \"string\" }",
+									"    }",
+									"};",
+									"",
+									"pm.test(\"Contrato: Estrutura do Usuário válida\", function () {",
+									"    pm.response.to.have.jsonSchema(userSchema);",
+									"});",
+									"",
+									"pm.test(\"Nome salvo corretamente\", function () {",
+									"    pm.expect(jsonData.firstName).to.eql(\"Christian\");",
+									"});",
+									"",
+									"if (jsonData.id) {",
+									"    console.log(\"ID Real Gerado: \" + jsonData.id);",
+									"",
+									"    pm.environment.set(\"userId\", \"1\"); ",
+									"    console.log(\"Variável userId definida para '1' para fluxo contínuo.\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "56bcf02f-c7e7-4bfd-90f1-2107239a408f",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Christian\",\n    \"lastName\": \"QA Tester\",\n    \"age\": 30,\n    \"email\": \"christian.qa@exemplo.com\",\n    \"username\": \"christianqa\",\n    \"password\": \"123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/users/add",
+						"description": "# Summary  \nCreates a new user in the DummyJSON service.\n\n## Endpoint and Method  \nPOST {{baseUrl}}/users/add\n\n## Path and Query Parameters\n\n- Path params: none\n    \n- Query params: none\n    \n\n## Headers\n\n- Content-Type: application/json (implied by raw JSON body)\n    \n\n## Authorization\n\n- Inherits any auth from parent folder/collection. If using a bearer token, refer to the environment variable `{{token}}` (if configured). This request does not set auth explicitly.\n    \n\n## Request Body\n\n- Type: application/json (raw)\n    \n- Schema (informal)  \n    {  \n    firstName: string (required),  \n    lastName: string (required),  \n    age: number (required),  \n    email: string (required),  \n    username: string (required),  \n    password: string (required)  \n    }\n    \n- Example  \n    {  \n    \"firstName\": \"Christian\",  \n    \"lastName\": \"QA Tester\",  \n    \"age\": 30,  \n    \"email\": \"[christian.qa@exemplo.com](https://mailto:christian.qa@exemplo.com)\",  \n    \"username\": \"christianqa\",  \n    \"password\": \"123\"  \n    }\n    \n## Response Examples\n\n- 201 Created (latest successful response)  \n    {  \n    \"id\": 209,  \n    \"firstName\": \"Christian\",  \n    \"lastName\": \"QA Tester\",  \n    \"maidenName\": \"\",  \n    \"age\": 30,  \n    \"gender\": \"\",  \n    \"email\": \"[christian.qa@exemplo.com](https://mailto:christian.qa@exemplo.com)\",  \n    \"phone\": \"\",  \n    \"username\": \"christianqa\",  \n    \"password\": \"123\",  \n    \"birthDate\": \"\",  \n    \"image\": \"\",  \n    \"bloodGroup\": \"\",  \n    \"height\": null,  \n    \"weight\": null,  \n    \"eyeColor\": \"\",  \n    \"hair\": {\"color\": \"\", \"type\": \"\"},  \n    \"ip\": \"\",  \n    \"address\": {\n    \n    ```\n    \"address\": \"\",\n    \"city\": \"\",\n    \"state\": \"\",\n    \"stateCode\": \"\",\n    \"postalCode\": \"\",\n    \"coordinates\": {\"lat\": null, \"lng\": null},\n    \"country\": \"\"\n    \n     ```\n    \n    },  \n    \"macAddress\": \"\",  \n    \"university\": \"\",  \n    \"bank\": {\n    \n    ```\n    \"cardExpire\": \"\",\n    \"cardNumber\": \"\",\n    \"cardType\": \"\",\n    \"currency\": \"\",\n    \"iban\": \"\"\n    \n     ```\n    \n    },  \n    \"company\": {\n    \n    ```\n    \"department\": \"\",\n    \"name\": \"\",\n    \"title\": \"\",\n    \"address\": {\n      \"address\": \"\",\n      \"city\": \"\",\n      \"state\": \"\",\n      \"stateCode\": \"\",\n      \"postalCode\": \"\",\n      \"coordinates\": {\"lat\": null, \"lng\": null},\n      \"country\": \"\"\n    }\n    \n     ```\n    \n    },  \n    \"ein\": \"\",  \n    \"ssn\": \"\",  \n    \"userAgent\": \"\",  \n    \"crypto\": {\"coin\": \"\", \"wallet\": \"\", \"network\": \"\"},  \n    \"role\": \"user\"  \n    }\n    \n\n## Tests (Post-response Script Behavior)\n\n- Verifies status code is 200 or 201.\n    \n- Validates response body against user schema: object with required fields id (integer), firstName (string), lastName (string), email (string).\n    \n- Asserts that firstName equals \"Christian\".\n    \n- If an id is present, logs it and sets environment variable userId to \"1\" for downstream flow.\n    \n\n## Environment Variables Used\n\n- {{baseUrl}} in the URL (active environment: \"DummyJSON - QA\").\n    \n- {{token}} may be used for auth if configured at a higher level (not explicitly set here).\n    \n\n## Notes\n\n- Ensure {{baseUrl}} points to the DummyJSON API host.\n    \n- Update the request body values as needed; tests currently assert firstName = \"Christian\".\n    \n- This request has no saved examples; consider saving the latest 201 response as an example for mock/Docs."
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a9537f13-8067-4362-b1dc-e6bae5047a72",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Contrato: Estrutura válida após update\", function () {",
+									"    pm.expect(jsonData).to.have.property(\"firstName\");",
+									"    pm.expect(jsonData).to.have.property(\"lastName\");",
+									"});",
+									"",
+									"pm.test(\"Sobrenome atualizado com sucesso\", function () {",
+									"    pm.expect(jsonData.lastName).to.eql(\"Sperb\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "76b1f538-8458-49c7-8c99-7b68a150007e",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"lastName\": \"Sperb\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/users/{{userId}}",
+						"description": "# Purpose  \nUpdate an existing user’s profile data.\n\n## Endpoint  \nPUT {{baseUrl}}/users/{{userId}}\n\n- Variables:\n    - baseUrl: from active environment (e.g., [https://dummyjson.com](https://dummyjson.com))\n        \n    - userId: numeric or string identifier of the user to update\n        \n\n## Method  \nPUT\n\n## Auth\n\n- Typically none for DummyJSON demo API.\n    \n- If your backend requires auth, inherit or add Bearer token at the folder/collection level. This request currently has no explicit auth set.\n    \n\n## Required Headers\n\n- Content-Type: application/json\n    \n\n## Request Body\n\n- Mode: raw (JSON)\n    \n- Schema (partial, only send fields you want to update):  \n    {  \n    firstName?: string,  \n    lastName?: string,  \n    email?: string,  \n    age?: number,  \n    gender?: \"male\" | \"female\" | string,  \n    address?: {\n    \n    ```\n    address?: string,\n    city?: string,\n    state?: string,\n    postalCode?: string\n    \n     ```\n    \n    }  \n    }\n    \n\n## Example Body  \n{  \n\"lastName\": \"Sperb\"  \n}\n\n## Successful Response\n\n- Status: 200 OK\n    \n- Returns the updated user object.\n    \n- Example:  \n    {  \n    \"id\": 1,  \n    \"firstName\": \"Emily\",  \n    \"lastName\": \"Sperb\",  \n    \"email\": \"[emily.johnson@x.dummyjson.com](https://mailto:emily.johnson@x.dummyjson.com)\",  \n    \"age\": 29,  \n    \"address\": { \"address\": \"626 Main Street\", \"city\": \"Phoenix\" }  \n    // ...other fields from the user resource  \n    }\n    \n\n## Error Responses (examples)\n\n- 400 Bad Request: invalid payload  \n    {  \n    \"message\": \"Invalid request body\"  \n    }\n    \n- 404 Not Found: unknown userId  \n    {  \n    \"message\": \"User not found\"  \n    }\n    \n- 401/403 Unauthorized/Forbidden (if your API requires auth)  \n    {  \n    \"message\": \"Unauthorized\"  \n    }\n    \n\n## Test Hints\n\n- Verify status code is 200.\n    \n- Assert that response contains expected properties (e.g., firstName, lastName).\n    \n- Assert that lastName equals the value sent in the request body.\n    \n\n## Notes\n\n- This request uses variables {{baseUrl}} and {{userId}} from the active environment/collection. Ensure they are set before sending.\n    \n- Only fields provided in the body will be updated. Do not include immutable fields like id."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9e8863a6-fca0-4010-bd09-7f5f79b0d956",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"var deleteUserSchema = {",
+									"    \"type\": \"object\",",
+									"    \"required\": [\"id\", \"isDeleted\", \"deletedOn\"],",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"integer\" },",
+									"        \"isDeleted\": { \"type\": \"boolean\" },",
+									"        \"deletedOn\": { \"type\": \"string\" }",
+									"    }",
+									"};",
+									"",
+									"pm.test(\"Contrato: Resposta de Deleção válida\", function () {",
+									"    pm.response.to.have.jsonSchema(deleteUserSchema);",
+									"});",
+									"",
+									"pm.test(\"Usuário deletado logicamente\", function () {",
+									"    pm.expect(jsonData.isDeleted).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "47974c81-cff6-4337-9b63-b15881f9e92b",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "{{baseUrl}}/users/{{userId}}",
+						"description": "# Purpose  \nDeletes a user by ID (logical delete) from the DummyJSON service. The operation marks the user as deleted rather than removing the record, returning deletion metadata.\n\n## Endpoint and Variables\n\n- Method: DELETE\n    \n- URL: {{baseUrl}}/users/{{userId}}\n    \n- Path/Env variables:\n    - {{baseUrl}} (env): Base API URL (e.g., [https://dummyjson.com](https://dummyjson.com))\n        \n    - {{userId}} (env): Numeric ID of the user to delete\n        \n\n## Authentication\n\n- If the API requires auth, set an auth token in the active environment variable {{token}} and configure Authorization at the collection/folder/request level as needed. This request currently has no explicit auth set and may inherit from parent.\n    \n\n## Expected Request\n\n- No request body.\n    \n- Typical headers: Accept: application/json\n    \n\n## Expected Response\n\n- Success: 200 OK with JSON body describing the user and deletion flags.\n    \n- Key fields used by tests:\n    - id: number\n        \n    - isDeleted: boolean (true when deletion succeeds)\n        \n    - deletedOn: string (ISO timestamp of logical delete)\n        \n\n## Schema (validated in tests)  \n{  \n\"type\": \"object\",  \n\"required\": \\[\"id\", \"isDeleted\", \"deletedOn\"\\],  \n\"properties\": {  \n\"id\": { \"type\": \"integer\" },  \n\"isDeleted\": { \"type\": \"boolean\" },  \n\"deletedOn\": { \"type\": \"string\" }  \n}  \n}\n\n## Post-response Tests Present\n\n- \"Contrato: Resposta de Deleção válida\": Validates the response JSON schema above.\n    \n- \"Usuário deletado logicamente\": Asserts jsonData.isDeleted === true.\n    \n- Additional tests observed in past runs (workspace-level/parent):\n    - Performance: response time below 2s (passed)\n        \n    - Status code is 200 or 201 (passed)\n        \n\n## Last Successful Response (reference)  \nStatus: 200  \nBody excerpt:  \n{  \n\"id\": 1,  \n...,  \n\"isDeleted\": true,  \n\"deletedOn\": \"2025-12-12T08:42:17.007Z\"  \n}\n\n## Success and Error Cases\n\n- 200 OK: User logically deleted. isDeleted should be true and deletedOn present.\n    \n- 404 Not Found: {{userId}} does not exist.\n    \n- 401/403 Unauthorized/Forbidden: Missing or invalid auth when the API requires it.\n    \n- 400 Bad Request: Invalid {{userId}} (non-numeric or malformed).\n    \n\n## How to Use / Examples\n\n1) Set env variables in \"DummyJSON - QA\":\n\n- baseUrl = [https://dummyjson.com](https://dummyjson.com)\n    \n- userId =\n    \n- token =  \n    2) Send the request. Verify tests:\n    \n- Schema validation passes.\n    \n- isDeleted equals true.  \n    3) Optional: Save a response example after a successful delete to assist mock servers/documentation.\n    \n\n## Notes\n\n- This is a logical delete; user data may still be returned with isDeleted = true and a deletion timestamp.\n    \n- Request has no body and relies entirely on the path variable {{userId}}."
+					},
+					"response": []
+				}
+			],
+			"id": "8b01f77d-1196-4514-95d9-4f33fc91dc53"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "329c2c23-7b65-44e4-86c3-7ed6f84801fe",
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "58e5b066-225b-4f8c-97fc-c6be0dd951ef",
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					"pm.test(\"Performance: Tempo de resposta abaixo de 2s\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+					"});",
+					"",
+					"pm.test(\"Status code is 200 or 201\", function () {",
+					"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+					"});"
+				]
+			}
+		}
+	]
+}
